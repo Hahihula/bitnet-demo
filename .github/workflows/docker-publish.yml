@@ -41,7 +41,9 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ env.IMAGE_NAME }}:${{ matrix.platform }}
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -64,12 +66,12 @@ jobs:
 
       - name: Pull all images
         run: |
-          docker pull ${{ env.IMAGE_NAME }}:linux/amd64
-          docker pull ${{ env.IMAGE_NAME }}:linux/arm64
+          docker pull ${{ env.IMAGE_NAME }}:amd64
+          docker pull ${{ env.IMAGE_NAME }}:arm64
 
       - name: Create and push manifest list
         run: |
           docker manifest create ${{ env.IMAGE_NAME }}:latest \
-            ${{ env.IMAGE_NAME }}:linux/amd64 \
-            ${{ env.IMAGE_NAME }}:linux/arm64
+            ${{ env.IMAGE_NAME }}:amd64 \
+            ${{ env.IMAGE_NAME }}:arm64
           docker manifest push ${{ env.IMAGE_NAME }}:latest
